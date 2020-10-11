@@ -1,0 +1,298 @@
+#!/bin/bash
+### download lists for adblock and accelerate (adb rules, hosts )
+## by gsk
+User="/Users/$(whoami)"
+Usr="/usr/local"
+easy_floder="$User/Sites/site/adb"
+###  easylist
+easylist_floder="$easy_floder/list"
+###  HOSTS
+host_floder="$easy_floder/host"
+host_down_floder="$easy_floder/hosts"
+#echo $easylist_floder
+ETMP_PATH="/tmp/get_easylist"
+SWP_FILE="$ETMP_PATH/hosts.swp"
+###  DNS
+dns_floder="$easy_floder/dns"
+dns_control="$Usr/etc/dnsmasq.d"
+web_floder="/Library/WebServer/Documents"
+
+list_url1=(
+	"https://easylist-downloads.adblockplus.org/malwaredomains_full.txt"
+	"https://easylist-downloads.adblockplus.org/antiadblockfilters.txt"
+    "https://easylist-downloads.adblockplus.org/easyprivacy.txt"
+	"https://easylist-downloads.adblockplus.org/easylistchina.txt"
+        )
+
+list_url2=(
+    "http://git.oschina.net/halflife/list/raw/master/ad.txt"
+#    "https://gitee.com/banbendalao/adguard/raw/master/ADgk.txt"
+    "https://raw.githubusercontent.com/xinggsf/Adblock-Plus-Rule/master/ABP-FX.txt"
+    "https://raw.githubusercontent.com/cjx82630/cjxlist/master/cjx-annoyance.txt"
+    "https://raw.githubusercontent.com/user1121114685/koolproxyR_rule_list/master/kpr_our_rule.txt"
+    "http://tools.yiclear.com/ChinaList2.0.txt"
+    "https://www.i-dont-care-about-cookies.eu/abp/"
+
+    "https://www.fanboy.co.nz/fanboy-cookiemonster.txt"
+    "https://www.fanboy.co.nz/fanboy-problematic-sites.txt"
+        )
+
+host_url=(
+    "https://raw.githubusercontent.com/vokins/yhosts/master/hosts"
+    "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
+    #"https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-gambling-social/hosts"
+    "https://hosts.nfz.moe/full/hosts"
+    "https://raw.githubusercontent.com/jdlingyu/ad-wars/master/hosts"
+    "https://raw.githubusercontent.com/Goooler/1024_hosts/master/hosts"
+    ##"https://hblock.molinero.xyz/hosts"
+    #"https://hblock.molinero.dev/hosts"
+
+
+    ### ipv6
+    #"https://raw.githubusercontent.com/googlehosts/hosts/master/hosts-files/hosts"
+    #"https://raw.githubusercontent.com/popcorner/cernet-ipv6-hosts/hosts/hosts"
+    #'https://raw.githubusercontent.com/popcorner/cernet-ipv6-hosts/hosts/hosts'
+    #"https://raw.githubusercontent.com/googlehosts/hosts-ipv6/master/hosts-files/hosts"
+         )
+
+hphosts_url=(
+    "https://hosts-file.net/ad_servers.txt"
+    "https://hosts-file.net/emd.txt"
+    "https://hosts-file.net/exp.txt"
+    "https://hosts-file.net/fsa.txt"
+    "https://hosts-file.net/grm.txt"
+    "https://hosts-file.net/hfs.txt"
+    "https://hosts-file.net/hfs.txt"
+    "https://hosts-file.net/hjk.txt"
+    "https://hosts-file.net/mmt.txt"
+    "https://hosts-file.net/pha.txt"
+    "https://hosts-file.net/psh.txt"
+    "https://hosts-file.net/pup.txt"
+    "https://hosts-file.net/wrz.txt"
+            )
+
+dns_url=(
+    "https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf"
+#    "https://raw.githubusercontent.com/googlehosts/hosts/master/hosts-files/dnsmasq-no-sni-rst.conf"
+#    "https://raw.githubusercontent.com/googlehosts/hosts/master/hosts-files/dnscrypt-proxy-cloaking-no-sni-rst.txt"
+    "https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/apple.china.conf"
+    "https://gitee.com/privacy-protection-tools/anti-ad/raw/master/anti-ad-for-dnsmasq.conf"
+    )
+
+if [ ! -d "$easy_floder" ]; then
+    mkdir -p $easy_floder
+fi
+if [ ! -d "$easylist_floder" ]; then
+    mkdir -p $easylist_floder
+fi
+if [ ! -d "$host_floder" ]; then
+    mkdir -p $host_floder
+fi
+if [ ! -d "$host_down_floder" ]; then
+    mkdir -p $host_down_floder
+fi
+if [ ! -d "ETMP_PATH" ]; then
+    mkdir -p $ETMP_PATH
+fi
+if [ ! -d "$dns_floder" ]; then
+    mkdir -p $dns_floder
+fi
+
+#easylist(){
+#	wget --tries=10 -c -N -P "$easylist_floder" https://easylist-downloads.adblockplus.org/malwaredomains_full.txt
+#	wget --tries=10 -c -N -P "$easylist_floder" https://easylist-downloads.adblockplus.org/antiadblockfilters.txt
+#	wget --tries=10 -c -N -P "$easylist_floder" https://easylist-downloads.adblockplus.org/easylistchina.txt
+#}
+
+easy_list(){
+    for url1 in ${list_url1[@]}
+    do
+        wget --tries=10 -c -N -P $easylist_floder $url1
+        #curl --retry-max-time 10 -continue -o $easylist_floder $url1
+    done
+}
+#easylist(){
+#    num=${#list_url1[@]}
+#    for((i=0;i<num;i++))
+#    {
+#        wget --tries=10 -c -N -P $easylist_floder $list_url1[i];
+#    }
+#}
+
+other_list(){
+    for url2 in ${list_url2[@]}
+    do
+        wget --tries=10 -c -N -P $easylist_floder $url2
+        #curl --retry-max-time 10 -continue -o $easylist_floder $url2
+    done
+}
+
+#####################       hphosts download
+hphosts_download(){
+    for hp in ${hphosts_url[@]}
+    do
+        #curl --retry-max-time 10 -continue -R -O ${hphost_url[hp]}
+        wget --tries=10 -c -N -P $host_floder $hp
+    done
+}
+
+
+#######################   host_control_start
+hosts_list(){
+    #for host in ${#host_url[@]}
+    for ((host=0;host<${#host_url[@]};host++))
+    do
+        #echo "$host_url" |grep github |awk -F\/ '{print $5}'
+        #name=$(echo "$host_url")
+        if [ -n "$(echo "${host_url[host]}"|grep github)" ]; then
+            name="$(echo "${host_url[host]}" |grep github |awk -F\/ '{print $5}')"
+            if [ "$name" = "hosts" ]; then
+                name="$(echo "${host_url[host]}" |grep github |awk -F\/ '{print $4}')"
+            fi
+            #curl --retry-max-time 10 -continue -o "$host_floder/$name" ${host_url[host]}
+
+        else
+            name=$(echo "${host_url[host]}" |awk -F\. '{print $2}')
+            #curl -continue -o "$host_floder/$name" ${host_url[host]}
+        fi
+        echo "host-$name"
+        curl --retry-max-time 10 -continue -R -o "$host_floder/$name" ${host_url[host]}
+
+        #curl -continue -o "$host_floder/host$host" ${host_url[host]}
+        #i+=1;curl -continue -o "$host_floder/host$i" $host_url
+    done
+
+#    curl --retry-max-time 7 -continue -R -o "$host_down_floder/hosts-go" https://raw.githubusercontent.com/googlehosts/hosts/master/hosts-files/hosts
+#    curl --retry-max-time 7 -continue -R -o "$host_down_floder/hosts-go" https://raw.githubusercontent.com/googlehosts/hosts/master/hosts-files/hosts-compact-no-sni-rst
+}
+
+conv_list() {
+    for list_file in ${easylist_floder}/*
+    do
+        echo "file $list_file"
+        list_name="$(basename $list_file suffix)"
+        echo $list_name
+	    if [ -f $list_file ]; then
+	        iconv -f utf-8 -t utf-8 $list_file > "$ETMP_PATH/$list_name"
+	        mv "$ETMP_PATH/$list_name" "$easylist_floder/$list_name"
+	        #rm -f "$ETMP_PATH/$list_name"
+        fi
+    done
+}
+
+####################    list_control_end
+
+######################      host Filter    ################################################
+#host_cache_floder="$User/share/site/adb/host"
+
+#HOSTS="$User/desktop/hosts"
+#ETMP_PATH="/tmp/get_easylist"
+#SWP_FILE="$ETMP_PATH/hosts.swp"
+
+host_filter() {
+    Hnum="$(ls -l $host_floder |grep "^-"|wc -l)"
+    echo "Have $Hnum host files"
+#        for (host=0;host<"$Hnum";host++)
+#        do
+#            host_file=
+#
+#        done
+    if [ ! -d $ETMP_PATH ]; then
+        echo "Haven't tmp directory, creat $ETMP_PATH "
+        mkdir $ETMP_PATH
+    fi
+
+	for ht in ${host_floder}/*
+	do
+        tmp_file_name="$(basename $ht suffix)"
+	    echo $tmp_file_name
+        tmp_file="$ETMP_PATH/$tmp_file_name.tmp"
+        #swp_file="$ETMP_PATH/$tmp_file_name.swp"
+
+        cp $ht $tmp_file
+        cat $tmp_file >> $SWP_FILE
+        #grep -v '\#' $tmp_file |awk -F '\s' '{print $1 $2}' >> $SWP_FILE
+    done
+    #cat $SWP_FILE |grep '^0\.0\.0\.0\|^127\.0\.0\.1\|^\:\:\|^\:\:1'|sort -u > "$easylist_floder/hosts"
+    #cat $SWP_FILE |grep -v '^.*\#'|sort -u > "$host_down_floder/hosts-$(date +%m%d)"
+    #cat $SWP_FILE |grep -v '^.*\#'|sort |uniq -u > "$host_down_floder/hosts-$(date +%m%d)"
+    ###################################
+    #cat $SWP_FILE |sort |uniq -u > "$host_down_floder/hosts-$(date +%m%d)"
+    #sed -i '' '/#/d' "$host_down_floder/hosts-$(date +%m%d)"
+    #sort -u $SWP_FILE |grep -v '\#' |sed '/^$/d' > $host_down_floder/hosts-$(date +%m%d)
+    sort -u $SWP_FILE |grep -v '\#' |sed '/^$/d' > $host_down_floder/hosts-$(date +%m%d)
+}
+
+#########################       host Filter End    ###########################################
+
+
+tmp_clean(){
+    if [ -s $host_down_floder ] || [ -d $ETMP_PATH ]; then
+        echo "cleanning"
+        rm -rf $ETMP_PATH
+    fi
+}
+
+dns_download_conf(){
+    #curl -o $dns_floder/accelerated-china.conf https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf ## china 
+
+    for url in ${dns_url[@]}
+    do
+        wget --tries=10 -c -N -P $dns_floder $url
+        #curl --retry-max-time 10 -continue -o $dns_floder $url
+    done
+}
+
+easylist_pac(){
+    #Usr="/usr/local"
+    pac_py="$Usr/bin/easylist_pac.py"
+    pac_path="$Usr/etc/adblock2privoxy/easylist"
+    
+    curl -o /Users/$(whoami)/Share/Site/ot/proxy.txt https://www.akgs.ml/static/pac.txt
+
+    if [ -f $pac_py ] && [ -d $pac_path ]; then
+        echo "generating pac..."
+        #python3 $pac_py -b 127.0.0.1:8119 -p 127.0.0.1:3128 -P $Usr/etc/proxy.pac -d $pac_path
+        python3 $pac_py -b 127.0.0.1:8119 -P $Usr/etc/adblock2privoxy/proxy.pac.orig -d $pac_path
+    fi
+}
+
+active(){
+    echo "Activiting conf..."
+    pac_py="$Usr/bin/easylist_pac.py"
+    pac_path="$Usr/etc/adblock2privoxy/easylist"
+    web_floder="/Library/WebServer/Documents"
+    ab2p_floder="$Usr/etc/adblock2privoxy"
+
+    dns_china_conf="$dns_flder/accelerated-china.conf"
+
+    if [ -s $host_floder ]; then
+        sudo adblock2privoxy -t $ad2p_floder/privoxy/ab2p.task
+    fi
+    if [ -s $pac_path ]; then
+        sudo cp $pac_path $web_floder
+    fi
+    if [ -s $dns_china_conf ]; then
+        sudo cp $dns_china_conf $dns_control
+        echo "Perhaps you need restart your DNS."
+    fi
+}
+
+
+#####################    run
+#easy_list;
+#other_list;
+#conv_list;
+
+dns_download_conf;
+
+#hphosts_download;
+
+hosts_list;
+host_filter;
+tmp_clean;
+
+
+#easylist_pac;
+
+#active
